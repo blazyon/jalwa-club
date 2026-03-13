@@ -1,0 +1,393 @@
+{% extends 'base.html' %}
+{% block title %}Wingo - {{ mode_label }}{% endblock %}
+
+{% block content %}
+<div class="px-4 pt-4">
+
+  <!-- Mode Tabs -->
+  <div class="flex gap-2 mb-4">
+    {% for m in valid_modes %}
+    <a href="?mode={{ m.key }}"
+       class="flex-1 py-2.5 rounded-xl text-xs font-bold text-center transition-all
+              {% if m.key == current_mode %}bg-purple-600 text-white shadow-lg{% else %}bg-purple-900/40 text-gray-400 border border-purple-700/30{% endif %}">
+      {{ m.label }}
+    </a>
+    {% endfor %}
+  </div>
+
+  <!-- Round Header -->
+  <div class="card-bg rounded-2xl p-4 mb-4 border border-purple-700/30">
+    <div class="flex items-center justify-between">
+      <div>
+        <p class="text-xs text-gray-400">{{ mode_label }} Round</p>
+        <p class="font-bold text-purple-300 text-lg">#{{ current_round.round_number }}</p>
+      </div>
+      <div class="text-center">
+        <p class="text-xs text-gray-400 mb-1">Time Remaining</p>
+        <div id="countdown" class="text-4xl font-mono font-black text-white">
+          {{ current_round.seconds_remaining }}
+        </div>
+        <div class="w-40 bg-purple-900/50 rounded-full h-2 mt-2">
+          <div id="progress-bar" class="bg-purple-500 h-2 rounded-full transition-all duration-1000" style="width:100%"></div>
+        </div>
+      </div>
+      <div class="text-right">
+        <p class="text-xs text-gray-400">Status</p>
+        <span class="text-xs font-bold {% if current_round.status == 'OPEN' %}text-green-400{% else %}text-red-400{% endif %}">
+          {{ current_round.status }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Results Strip -->
+  {% if history %}
+  <div class="card-bg rounded-xl p-3 mb-4 border border-purple-700/20">
+    <p class="text-xs text-gray-400 mb-2">Recent Results</p>
+    <div class="flex gap-1.5 overflow-x-auto pb-1">
+      {% for r in history %}
+      <div class="flex-shrink-0 text-center">
+        <div class="w-8 h-8 rounded-full flex items-center justify-center font-black text-xs
+          {% if 'VIOLET' in r.result_color %}bg-violet-600{% elif 'GREEN' in r.result_color %}bg-green-600{% else %}bg-red-600{% endif %}">
+          {{ r.result_number }}
+        </div>
+        <div class="text-xs text-gray-500 mt-0.5">{% if r.result_size == 'BIG' %}B{% else %}S{% endif %}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Bet Panel -->
+  <div class="card-bg rounded-2xl p-4 mb-4 border border-purple-700/30">
+    <h3 class="font-semibold text-sm mb-3 text-purple-300">Place Bet — {{ mode_label }}</h3>
+
+    <!-- Bet Type Tabs -->
+    <div class="flex gap-2 mb-4">
+      <button id="tab-NUMBER" onclick="setBetType('NUMBER')"
+        class="flex-1 py-2 rounded-xl text-xs font-semibold transition-all bg-purple-600 text-white">Number</button>
+      <button id="tab-COLOR" onclick="setBetType('COLOR')"
+        class="flex-1 py-2 rounded-xl text-xs font-semibold transition-all bg-purple-900/40 text-gray-400">Color</button>
+      <button id="tab-SIZE" onclick="setBetType('SIZE')"
+        class="flex-1 py-2 rounded-xl text-xs font-semibold transition-all bg-purple-900/40 text-gray-400">Big/Small</button>
+    </div>
+
+    <!-- Number Panel -->
+    <div id="panel-NUMBER" class="bet-panel">
+      <div class="grid grid-cols-5 gap-2 mb-2">
+        <button onclick="selectBetValue('0')" data-value="0" class="bet-value-btn h-12 rounded-xl font-black text-lg bg-violet-600 active:scale-90 transition-all">0</button>
+        <button onclick="selectBetValue('1')" data-value="1" class="bet-value-btn h-12 rounded-xl font-black text-lg bg-green-600 active:scale-90 transition-all">1</button>
+        <button onclick="selectBetValue('2')" data-value="2" class="bet-value-btn h-12 rounded-xl font-black text-lg bg-red-600 active:scale-90 transition-all">2</button>
+        <button onclick="selectBetValue('3')" data-value="3" class="bet-value-btn h-12 rounded-xl font-black text-lg bg-green-600 active:scale-90 transition-all">3</button>
+        <button onclick="selectBetValue('4')" data-value="4" class="bet-value-btn h-12 rounded-xl font-black text-lg bg-red-600 active:scale-90 transition-all">4</button>
+        <button onclick="selectBetValue('5')" data-value="5" class="bet-value-btn h-12 rounded-xl font-black text-lg bg-violet-600 active:scale-90 transition-all">5</button>
+        <button onclick="selectBetValue('6')" data-value="6" class="bet-value-btn h-12 rounded-xl font-black text-lg bg-red-600 active:scale-90 transition-all">6</button>
+        <button onclick="selectBetValue('7')" data-value="7" class="bet-value-btn h-12 rounded-xl font-black text-lg bg-green-600 active:scale-90 transition-all">7</button>
+        <button onclick="selectBetValue('8')" data-value="8" class="bet-value-btn h-12 rounded-xl font-black text-lg bg-red-600 active:scale-90 transition-all">8</button>
+        <button onclick="selectBetValue('9')" data-value="9" class="bet-value-btn h-12 rounded-xl font-black text-lg bg-green-600 active:scale-90 transition-all">9</button>
+      </div>
+      <div class="text-xs text-gray-500 flex justify-between px-1 mb-1">
+        <span>🟣 Violet 0,5 → 4.5x</span>
+        <span>🟢 Green 1,3,7,9 → 2x</span>
+        <span>🔴 Red 2,4,6,8 → 2x</span>
+      </div>
+      <p class="text-xs text-center text-amber-400">Exact number match → 9x</p>
+    </div>
+
+    <!-- Color Panel -->
+    <div id="panel-COLOR" class="bet-panel hidden">
+      <div class="grid grid-cols-3 gap-3">
+        <button onclick="selectBetValue('RED')" data-value="RED"
+          class="bet-value-btn h-16 rounded-xl bg-red-600 font-bold text-sm active:scale-95 transition-all flex flex-col items-center justify-center gap-1">
+          <span>🔴</span><span>Red</span><span class="text-xs opacity-70">2x</span>
+        </button>
+        <button onclick="selectBetValue('GREEN')" data-value="GREEN"
+          class="bet-value-btn h-16 rounded-xl bg-green-600 font-bold text-sm active:scale-95 transition-all flex flex-col items-center justify-center gap-1">
+          <span>🟢</span><span>Green</span><span class="text-xs opacity-70">2x</span>
+        </button>
+        <button onclick="selectBetValue('VIOLET')" data-value="VIOLET"
+          class="bet-value-btn h-16 rounded-xl bg-violet-600 font-bold text-sm active:scale-95 transition-all flex flex-col items-center justify-center gap-1">
+          <span>🟣</span><span>Violet</span><span class="text-xs opacity-70">4.5x</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Size Panel -->
+    <div id="panel-SIZE" class="bet-panel hidden">
+      <div class="grid grid-cols-2 gap-3">
+        <button onclick="selectBetValue('BIG')" data-value="BIG"
+          class="bet-value-btn h-16 rounded-xl bg-blue-700 font-bold text-sm active:scale-95 transition-all flex flex-col items-center justify-center gap-1">
+          <span>📈</span><span>Big (5–9)</span><span class="text-xs opacity-70">2x</span>
+        </button>
+        <button onclick="selectBetValue('SMALL')" data-value="SMALL"
+          class="bet-value-btn h-16 rounded-xl bg-emerald-700 font-bold text-sm active:scale-95 transition-all flex flex-col items-center justify-center gap-1">
+          <span>📉</span><span>Small (0–4)</span><span class="text-xs opacity-70">2x</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Amount Row -->
+    <div class="mt-4 pt-4 border-t border-purple-800/40">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-xs text-gray-400">Selected: <span id="selected-display" class="font-bold text-purple-300">None</span></span>
+        <span class="text-xs text-gray-400">Win: <span id="potential-payout" class="text-amber-400 font-bold">—</span></span>
+      </div>
+      <div class="grid grid-cols-4 gap-1.5 mb-3">
+        <button onclick="setAmount(10)"  class="quick-btn bg-purple-900/50 border border-purple-700/40 rounded-lg py-2 text-xs font-semibold text-gray-300">10</button>
+        <button onclick="setAmount(50)"  class="quick-btn bg-purple-900/50 border border-purple-700/40 rounded-lg py-2 text-xs font-semibold text-gray-300">50</button>
+        <button onclick="setAmount(100)" class="quick-btn bg-purple-900/50 border border-purple-700/40 rounded-lg py-2 text-xs font-semibold text-gray-300">100</button>
+        <button onclick="setAmount(500)" class="quick-btn bg-purple-900/50 border border-purple-700/40 rounded-lg py-2 text-xs font-semibold text-gray-300">500</button>
+      </div>
+      <div class="flex gap-3">
+        <div class="flex-1 bg-purple-900/30 border border-purple-700/40 rounded-xl px-3 py-2.5 flex items-center gap-2">
+          <span class="text-yellow-400">🪙</span>
+          <input type="number" id="bet-amount" min="10" max="10000" value="10"
+            class="bg-transparent flex-1 text-white text-sm font-bold outline-none" oninput="updatePotential()">
+        </div>
+        <button id="place-bet-btn" onclick="placeBet()"
+          class="px-6 py-2.5 rounded-xl font-bold text-sm text-white bg-purple-600 hover:bg-purple-500 active:scale-95 transition-all disabled:opacity-50">
+          Place Bet
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- My Bets This Round -->
+  {% if my_bets %}
+  <div class="card-bg rounded-xl p-4 mb-4 border border-purple-700/20">
+    <h4 class="text-sm font-semibold text-purple-300 mb-2">My Bets This Round</h4>
+    {% for bet in my_bets %}
+    <div class="flex items-center justify-between py-2 border-b border-purple-800/30 last:border-0">
+      <span class="text-xs text-gray-400">{{ bet.get_bet_type_display }}</span>
+      <span class="text-sm font-bold text-white ml-2">{{ bet.bet_value }}</span>
+      <div class="ml-auto text-right">
+        <span class="text-xs text-yellow-400">🪙 {{ bet.amount|floatformat:0 }}</span>
+        <span class="text-xs text-gray-400 ml-1">→ {{ bet.potential_payout|floatformat:0 }}</span>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Bet History (settled bets) -->
+  {% if bet_history %}
+  <div class="card-bg rounded-2xl p-4 mb-4 border border-purple-700/20">
+    <h4 class="text-sm font-semibold text-purple-300 mb-3">My Bet History</h4>
+    <div class="space-y-2">
+      {% for bet in bet_history %}
+      <div class="flex items-center gap-3 p-3 rounded-xl border
+        {% if bet.is_winner %}bg-green-900/20 border-green-500/30{% else %}bg-red-900/10 border-red-500/20{% endif %}">
+        <!-- Result ball -->
+        <div class="w-9 h-9 rounded-full flex items-center justify-center font-black text-sm flex-shrink-0
+          {% if 'VIOLET' in bet.round.result_color %}bg-violet-600{% elif 'GREEN' in bet.round.result_color %}bg-green-600{% else %}bg-red-600{% endif %}">
+          {{ bet.round.result_number }}
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-gray-400">#{{ bet.round.round_number }}</span>
+            <span class="text-xs font-bold text-white">{{ bet.bet_type }} · {{ bet.bet_value }}</span>
+          </div>
+          <div class="text-xs text-gray-500 mt-0.5">
+            Bet: 🪙{{ bet.amount|floatformat:0 }} · Result: {{ bet.round.result_number }} {{ bet.round.result_color }} {{ bet.round.result_size }}
+          </div>
+        </div>
+        <div class="text-right flex-shrink-0">
+          {% if bet.is_winner %}
+            <span class="text-green-400 font-bold text-sm">+🪙{{ bet.payout_amount|floatformat:0 }}</span>
+            <div class="text-xs text-green-500">WIN ✅</div>
+          {% else %}
+            <span class="text-red-400 font-bold text-sm">-🪙{{ bet.amount|floatformat:0 }}</span>
+            <div class="text-xs text-red-500">LOSS ❌</div>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Round History Table -->
+  <div class="card-bg rounded-2xl p-4 border border-purple-700/20 mb-6">
+    <h4 class="text-sm font-semibold text-purple-300 mb-3">Round History</h4>
+    {% if history %}
+    <div class="overflow-x-auto -mx-4 px-4">
+    <table class="w-full text-xs">
+      <thead>
+        <tr class="text-gray-500 border-b border-purple-800/30">
+          <th class="pb-2 text-left">Round</th>
+          <th class="pb-2 text-center">Number</th>
+          <th class="pb-2 text-center">Color</th>
+          <th class="pb-2 text-center">Size</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in history %}
+        <tr class="border-b border-purple-800/20 hover:bg-purple-900/20">
+          <td class="py-2 text-gray-400">#{{ r.round_number }}</td>
+          <td class="py-2 text-center">
+            <span class="inline-flex w-7 h-7 rounded-full items-center justify-center font-bold
+              {% if 'VIOLET' in r.result_color %}bg-violet-600{% elif 'GREEN' in r.result_color %}bg-green-600{% else %}bg-red-600{% endif %}">
+              {{ r.result_number }}
+            </span>
+          </td>
+          <td class="py-2 text-center {% if 'VIOLET' in r.result_color %}text-violet-400{% elif 'GREEN' in r.result_color %}text-green-400{% else %}text-red-400{% endif %}">
+            {{ r.result_color }}
+          </td>
+          <td class="py-2 text-center text-gray-300">{{ r.result_size }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="text-center text-gray-500 py-4">No completed rounds yet.</p>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const TOTAL_SECONDS = {{ current_round.duration_seconds }};
+let timeLeft = {{ current_round.seconds_remaining }};
+let currentBetType = 'NUMBER';
+let currentBetValue = null;
+const CURRENT_MODE = '{{ current_mode }}';
+const CURRENT_ROUND_NUMBER = {{ current_round.round_number }};
+
+// ── Countdown ────────────────────────────────────────────────
+const countdownEl = document.getElementById('countdown');
+const progressEl  = document.getElementById('progress-bar');
+
+function tick() {
+  if (timeLeft <= 0) {
+    countdownEl.textContent = '00';
+    progressEl.style.width = '0%';
+    showToast('⏰ Round ended! Loading next round...', 'info');
+    setTimeout(() => location.reload(), 2500);
+    return;
+  }
+  timeLeft--;
+  countdownEl.textContent = String(timeLeft).padStart(2, '0');
+  countdownEl.style.color = timeLeft <= 10 ? '#ef4444' : '#ffffff';
+  progressEl.style.width = ((timeLeft / TOTAL_SECONDS) * 100) + '%';
+  if (timeLeft === 5) showToast('⚠️ 5 seconds left! Bets closing!', 'warn');
+}
+setInterval(tick, 1000);
+
+// ── Bet type tabs ─────────────────────────────────────────────
+function setBetType(type) {
+  currentBetType = type;
+  currentBetValue = null;
+  document.getElementById('selected-display').textContent = 'None';
+  document.getElementById('potential-payout').textContent = '—';
+  document.querySelectorAll('.bet-panel').forEach(p => p.classList.add('hidden'));
+  document.getElementById('panel-' + type).classList.remove('hidden');
+  ['NUMBER','COLOR','SIZE'].forEach(t => {
+    const tab = document.getElementById('tab-' + t);
+    tab.className = 'flex-1 py-2 rounded-xl text-xs font-semibold transition-all ' +
+      (t === type ? 'bg-purple-600 text-white' : 'bg-purple-900/40 text-gray-400');
+  });
+  document.querySelectorAll('.bet-value-btn').forEach(b => {
+    b.style.outline = '';
+    b.style.transform = '';
+  });
+}
+
+function selectBetValue(value) {
+  currentBetValue = value;
+  document.getElementById('selected-display').textContent = currentBetType + ': ' + value;
+  document.querySelectorAll('.bet-value-btn').forEach(b => {
+    b.style.outline = b.dataset.value === value ? '2px solid #f59e0b' : '';
+    b.style.transform = b.dataset.value === value ? 'scale(1.08)' : '';
+  });
+  updatePotential();
+}
+
+function setAmount(v) {
+  document.getElementById('bet-amount').value = v;
+  updatePotential();
+}
+
+function updatePotential() {
+  const amount = parseFloat(document.getElementById('bet-amount').value) || 0;
+  if (!currentBetValue || !amount) {
+    document.getElementById('potential-payout').textContent = '—';
+    return;
+  }
+  const odds = currentBetType === 'NUMBER' ? 9
+    : (currentBetType === 'COLOR' && currentBetValue === 'VIOLET' ? 4.5 : 2);
+  document.getElementById('potential-payout').textContent = '🪙 ' + Math.floor(amount * odds);
+}
+
+// ── Place bet ─────────────────────────────────────────────────
+async function placeBet() {
+  if (!currentBetValue) { showToast('❌ Select a bet option first.', 'error'); return; }
+  const amount = parseFloat(document.getElementById('bet-amount').value);
+  if (!amount || amount < 10) { showToast('❌ Minimum bet is 10 coins.', 'error'); return; }
+  if (timeLeft <= 5) { showToast('❌ Bet window closed! Wait for next round.', 'error'); return; }
+
+  const btn = document.getElementById('place-bet-btn');
+  btn.disabled = true; btn.textContent = 'Placing...';
+
+  try {
+    const r = await fetch('/api/games/wingo/bet/?mode=' + CURRENT_MODE, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+      credentials: 'same-origin',
+      body: JSON.stringify({ bet_type: currentBetType, bet_value: currentBetValue, amount })
+    });
+    const data = await r.json();
+    if (r.ok) {
+      showToast('✅ Bet placed! Potential: 🪙' + Math.floor(data.potential_payout), 'success');
+      setTimeout(() => location.reload(), 1800);
+    } else {
+      showToast('❌ ' + (data.error || 'Failed to place bet'), 'error');
+      btn.disabled = false; btn.textContent = 'Place Bet';
+    }
+  } catch(e) {
+    showToast('❌ Network error. Try again.', 'error');
+    btn.disabled = false; btn.textContent = 'Place Bet';
+  }
+}
+
+// ── Poll for new round ─────────────────────────────────────────
+setInterval(async () => {
+  try {
+    const r = await fetch('/api/games/wingo/current/?mode=' + CURRENT_MODE, {
+      credentials: 'same-origin'
+    });
+    if (r.ok) {
+      const d = await r.json();
+      if (d.round_number !== CURRENT_ROUND_NUMBER) {
+        location.reload();
+      }
+    }
+  } catch(e) {}
+}, 12000);
+
+// ── Toast ─────────────────────────────────────────────────────
+function showToast(msg, type) {
+  const colors = {
+    success: 'bg-green-800 border-green-500',
+    error: 'bg-red-900 border-red-500',
+    warn: 'bg-amber-800 border-amber-500',
+    info: 'bg-blue-900 border-blue-500'
+  };
+  const div = document.createElement('div');
+  div.className = `fixed top-20 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-xl text-sm font-semibold shadow-2xl border ${colors[type]||colors.info} text-white`;
+  div.textContent = msg;
+  document.body.appendChild(div);
+  setTimeout(() => div.remove(), 3500);
+}
+
+function getCookie(n) {
+  const v = document.cookie.match('(^|;) ?' + n + '=([^;]*)(;|$)');
+  return v ? v[2] : '';
+}
+</script>
+<style>
+.card-bg { background: linear-gradient(135deg, #1e0b3e, #2d1060); }
+</style>
+</div><!-- /outer px-4 pt-4 -->
+{% endblock %}

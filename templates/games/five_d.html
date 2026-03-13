@@ -1,0 +1,329 @@
+{% extends 'base.html' %}
+{% block title %}5D Lottery{% endblock %}
+
+{% block content %}
+<div class="px-4 pt-4">
+
+  <!-- Round Header -->
+  <div class="card-bg rounded-2xl p-4 mb-4 border border-emerald-700/30">
+    <div class="flex items-center justify-between">
+      <div>
+        <p class="text-xs text-gray-400">5D Round</p>
+        <p class="font-bold text-emerald-300">#{{ current_round.round_number }}</p>
+      </div>
+      <div class="text-center">
+        <p class="text-xs text-gray-400 mb-1">Time Left</p>
+        <div id="countdown" class="text-4xl font-mono font-black text-white">{{ current_round.seconds_remaining }}</div>
+        <div class="w-40 bg-emerald-900/50 rounded-full h-2 mt-2">
+          <div id="progress-bar" class="bg-emerald-500 h-2 rounded-full transition-all duration-1000" style="width:100%"></div>
+        </div>
+      </div>
+      <div class="text-right">
+        <p class="text-xs text-gray-400">5-Min Game</p>
+        <span class="text-xs font-bold {% if current_round.status == 'OPEN' %}text-green-400{% else %}text-red-400{% endif %}">
+          {{ current_round.status }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Last Draw Display -->
+  {% if history %}
+  {% with last=history.0 %}
+  <div class="card-bg rounded-xl p-4 mb-4 border border-emerald-700/20">
+    <p class="text-xs text-gray-400 mb-2">Last Result — #{{ last.round_number }}</p>
+    <div class="flex items-center gap-2 justify-center">
+      <div class="text-center">
+        <div class="text-xs text-gray-500 mb-1">A</div>
+        <div class="w-10 h-10 bg-emerald-800 rounded-xl flex items-center justify-center font-black text-xl border-2 border-emerald-500">{{ last.digit_a }}</div>
+      </div>
+      <div class="text-center">
+        <div class="text-xs text-gray-500 mb-1">B</div>
+        <div class="w-10 h-10 bg-emerald-800 rounded-xl flex items-center justify-center font-black text-xl border-2 border-emerald-500">{{ last.digit_b }}</div>
+      </div>
+      <div class="text-center">
+        <div class="text-xs text-gray-500 mb-1">C</div>
+        <div class="w-10 h-10 bg-emerald-800 rounded-xl flex items-center justify-center font-black text-xl border-2 border-emerald-500">{{ last.digit_c }}</div>
+      </div>
+      <div class="text-center">
+        <div class="text-xs text-gray-500 mb-1">D</div>
+        <div class="w-10 h-10 bg-emerald-800 rounded-xl flex items-center justify-center font-black text-xl border-2 border-emerald-500">{{ last.digit_d }}</div>
+      </div>
+      <div class="text-center">
+        <div class="text-xs text-gray-500 mb-1">E</div>
+        <div class="w-10 h-10 bg-emerald-800 rounded-xl flex items-center justify-center font-black text-xl border-2 border-emerald-500">{{ last.digit_e }}</div>
+      </div>
+      <div class="text-center ml-2">
+        <div class="text-xs text-gray-500 mb-1">Sum</div>
+        <div class="w-12 h-10 bg-amber-700 rounded-xl flex items-center justify-center font-black text-lg border-2 border-amber-500">{{ last.total }}</div>
+      </div>
+    </div>
+    <div class="flex gap-2 justify-center mt-2">
+      <span class="text-xs px-2 py-0.5 rounded-full {% if last.total >= 23 %}bg-blue-800 text-blue-300{% else %}bg-emerald-800 text-emerald-300{% endif %}">
+        {% if last.total >= 23 %}Big (≥23){% else %}Small (<23){% endif %}
+      </span>
+      <span class="text-xs px-2 py-0.5 rounded-full {% if last.total|divisibleby:2 %}bg-purple-800 text-purple-300{% else %}bg-orange-800 text-orange-300{% endif %}">
+        {% if last.total|divisibleby:2 %}Even{% else %}Odd{% endif %}
+      </span>
+    </div>
+  </div>
+  {% endwith %}
+  {% endif %}
+
+  <!-- Bet Panel -->
+  <div class="card-bg rounded-2xl p-4 mb-4 border border-emerald-700/30">
+    <h3 class="font-semibold text-sm mb-3 text-emerald-300">Place Bet</h3>
+
+    <!-- Position Bet -->
+    <div class="mb-4">
+      <p class="text-xs text-gray-400 mb-2">Step 1: Choose position</p>
+      <div class="flex gap-2">
+        <button onclick="selectPos('A')" id="pos-A" data-pos="A"
+          class="pos-btn flex-1 py-2.5 rounded-lg text-sm font-bold border-2 border-transparent bg-emerald-900/50 transition-all">A</button>
+        <button onclick="selectPos('B')" id="pos-B" data-pos="B"
+          class="pos-btn flex-1 py-2.5 rounded-lg text-sm font-bold border-2 border-transparent bg-emerald-900/50 transition-all">B</button>
+        <button onclick="selectPos('C')" id="pos-C" data-pos="C"
+          class="pos-btn flex-1 py-2.5 rounded-lg text-sm font-bold border-2 border-transparent bg-emerald-900/50 transition-all">C</button>
+        <button onclick="selectPos('D')" id="pos-D" data-pos="D"
+          class="pos-btn flex-1 py-2.5 rounded-lg text-sm font-bold border-2 border-transparent bg-emerald-900/50 transition-all">D</button>
+        <button onclick="selectPos('E')" id="pos-E" data-pos="E"
+          class="pos-btn flex-1 py-2.5 rounded-lg text-sm font-bold border-2 border-transparent bg-emerald-900/50 transition-all">E</button>
+      </div>
+      <p class="text-xs text-gray-400 mt-2 mb-2">Step 2: Choose digit (0–9) → 9x payout</p>
+      <div class="grid grid-cols-5 gap-1.5">
+        <button onclick="selectDigit('0')" data-d="0" class="digit-btn py-2 rounded-lg text-sm font-bold bg-emerald-900/30 border border-emerald-700/30 transition-all">0</button>
+        <button onclick="selectDigit('1')" data-d="1" class="digit-btn py-2 rounded-lg text-sm font-bold bg-emerald-900/30 border border-emerald-700/30 transition-all">1</button>
+        <button onclick="selectDigit('2')" data-d="2" class="digit-btn py-2 rounded-lg text-sm font-bold bg-emerald-900/30 border border-emerald-700/30 transition-all">2</button>
+        <button onclick="selectDigit('3')" data-d="3" class="digit-btn py-2 rounded-lg text-sm font-bold bg-emerald-900/30 border border-emerald-700/30 transition-all">3</button>
+        <button onclick="selectDigit('4')" data-d="4" class="digit-btn py-2 rounded-lg text-sm font-bold bg-emerald-900/30 border border-emerald-700/30 transition-all">4</button>
+        <button onclick="selectDigit('5')" data-d="5" class="digit-btn py-2 rounded-lg text-sm font-bold bg-emerald-900/30 border border-emerald-700/30 transition-all">5</button>
+        <button onclick="selectDigit('6')" data-d="6" class="digit-btn py-2 rounded-lg text-sm font-bold bg-emerald-900/30 border border-emerald-700/30 transition-all">6</button>
+        <button onclick="selectDigit('7')" data-d="7" class="digit-btn py-2 rounded-lg text-sm font-bold bg-emerald-900/30 border border-emerald-700/30 transition-all">7</button>
+        <button onclick="selectDigit('8')" data-d="8" class="digit-btn py-2 rounded-lg text-sm font-bold bg-emerald-900/30 border border-emerald-700/30 transition-all">8</button>
+        <button onclick="selectDigit('9')" data-d="9" class="digit-btn py-2 rounded-lg text-sm font-bold bg-emerald-900/30 border border-emerald-700/30 transition-all">9</button>
+      </div>
+    </div>
+
+    <!-- Total Size / Parity -->
+    <div class="border-t border-emerald-800/40 pt-3 mb-4">
+      <p class="text-xs text-gray-400 mb-2">Or bet on Total Sum</p>
+      <div class="grid grid-cols-4 gap-2">
+        <button onclick="selectFiveDType('TOTAL_SIZE','BIG')" data-fkey="TOTAL_SIZE:BIG"
+          class="fived-btn py-3 rounded-xl text-xs font-bold border-2 border-transparent bg-blue-700 transition-all flex flex-col items-center">
+          <span>📈 Big</span><span class="opacity-70">23–45 · 2x</span>
+        </button>
+        <button onclick="selectFiveDType('TOTAL_SIZE','SMALL')" data-fkey="TOTAL_SIZE:SMALL"
+          class="fived-btn py-3 rounded-xl text-xs font-bold border-2 border-transparent bg-emerald-700 transition-all flex flex-col items-center">
+          <span>📉 Small</span><span class="opacity-70">0–22 · 2x</span>
+        </button>
+        <button onclick="selectFiveDType('TOTAL_PARITY','ODD')" data-fkey="TOTAL_PARITY:ODD"
+          class="fived-btn py-3 rounded-xl text-xs font-bold border-2 border-transparent bg-orange-700 transition-all flex flex-col items-center">
+          <span>🔴 Odd</span><span class="opacity-70">2x</span>
+        </button>
+        <button onclick="selectFiveDType('TOTAL_PARITY','EVEN')" data-fkey="TOTAL_PARITY:EVEN"
+          class="fived-btn py-3 rounded-xl text-xs font-bold border-2 border-transparent bg-indigo-700 transition-all flex flex-col items-center">
+          <span>🔵 Even</span><span class="opacity-70">2x</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Amount -->
+    <div class="pt-3 border-t border-emerald-800/40">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-xs text-gray-400">Selected: <span id="fived-selected" class="text-emerald-300 font-semibold">None</span></span>
+        <span class="text-xs text-amber-400 font-bold" id="fived-potential">—</span>
+      </div>
+      <div class="grid grid-cols-4 gap-1.5 mb-2">
+        <button onclick="setFiveDAmount(10)"  class="bg-emerald-900/50 border border-emerald-700/40 rounded-lg py-2 text-xs font-semibold">10</button>
+        <button onclick="setFiveDAmount(50)"  class="bg-emerald-900/50 border border-emerald-700/40 rounded-lg py-2 text-xs font-semibold">50</button>
+        <button onclick="setFiveDAmount(100)" class="bg-emerald-900/50 border border-emerald-700/40 rounded-lg py-2 text-xs font-semibold">100</button>
+        <button onclick="setFiveDAmount(500)" class="bg-emerald-900/50 border border-emerald-700/40 rounded-lg py-2 text-xs font-semibold">500</button>
+      </div>
+      <div class="flex gap-3">
+        <div class="flex-1 bg-emerald-900/30 border border-emerald-700/40 rounded-xl px-3 py-2.5 flex items-center gap-2">
+          <span class="text-yellow-400">🪙</span>
+          <input type="number" id="fived-amount" min="10" max="10000" value="10"
+            class="bg-transparent flex-1 text-white text-sm font-bold outline-none" oninput="updateFiveDPotential()">
+        </div>
+        <button id="fived-place-btn" onclick="placeFiveDbet()"
+          class="px-6 py-2.5 rounded-xl font-bold text-sm text-white bg-emerald-700 hover:bg-emerald-600 active:scale-95 transition-all">
+          Place Bet
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- My Bets -->
+  {% if my_bets %}
+  <div class="card-bg rounded-xl p-4 mb-4 border border-emerald-700/20">
+    <h4 class="text-sm font-semibold text-emerald-300 mb-2">My Bets This Round</h4>
+    {% for bet in my_bets %}
+    <div class="flex items-center justify-between py-2 border-b border-emerald-800/30 last:border-0">
+      <span class="text-xs text-gray-400">{{ bet.get_bet_type_display }}</span>
+      <span class="text-sm font-bold text-white ml-2">{{ bet.bet_value }}</span>
+      <div class="ml-auto text-right">
+        <span class="text-xs text-yellow-400">🪙 {{ bet.amount|floatformat:0 }}</span>
+        <span class="text-xs text-gray-400 ml-1">→ {{ bet.potential_payout|floatformat:0 }}</span>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- History -->
+  <div class="card-bg rounded-2xl p-4 border border-emerald-700/20 mb-6">
+    <h4 class="text-sm font-semibold text-emerald-300 mb-3">Round History</h4>
+    {% if history %}
+    <div class="overflow-x-auto -mx-4 px-4">
+    <table class="w-full text-xs">
+      <thead>
+        <tr class="text-gray-500 border-b border-emerald-800/30">
+          <th class="pb-2 text-left">Round</th>
+          <th class="pb-2 text-center">A B C D E</th>
+          <th class="pb-2 text-center">Sum</th>
+          <th class="pb-2 text-right">Size</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in history %}
+        <tr class="border-b border-emerald-800/20">
+          <td class="py-2 text-gray-400">#{{ r.round_number }}</td>
+          <td class="py-2 text-center font-mono font-bold">{{ r.digit_a }}·{{ r.digit_b }}·{{ r.digit_c }}·{{ r.digit_d }}·{{ r.digit_e }}</td>
+          <td class="py-2 text-center font-bold text-emerald-300">{{ r.total }}</td>
+          <td class="py-2 text-right {% if r.total >= 23 %}text-blue-400{% else %}text-emerald-400{% endif %}">
+            {% if r.total >= 23 %}Big{% else %}Small{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+    {% else %}
+    <p class="text-center text-gray-500 py-4">No completed rounds yet.</p>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const TOTAL_SECONDS = 300;
+let timeLeft = {{ current_round.seconds_remaining }};
+let selectedPos = null;
+let fivedBetType = null, fivedBetValue = null;
+
+const countdownEl = document.getElementById('countdown');
+const progressEl  = document.getElementById('progress-bar');
+
+function tick() {
+  if (timeLeft <= 0) {
+    countdownEl.textContent = '00';
+    progressEl.style.width = '0%';
+    showToast('⏰ Round ended! Loading next round...', 'info');
+    setTimeout(() => location.reload(), 2500);
+    return;
+  }
+  timeLeft--;
+  countdownEl.textContent = String(timeLeft).padStart(2, '0');
+  countdownEl.style.color = timeLeft <= 15 ? '#ef4444' : '#ffffff';
+  progressEl.style.width = ((timeLeft / TOTAL_SECONDS) * 100) + '%';
+  if (timeLeft === 5) showToast('⚠️ 5 seconds left!', 'warn');
+}
+setInterval(tick, 1000);
+
+function selectPos(pos) {
+  selectedPos = pos;
+  // Reset digit if position changed
+  document.querySelectorAll('.digit-btn').forEach(b => b.style.borderColor = '');
+  document.querySelectorAll('.pos-btn').forEach(b => {
+    b.style.borderColor = b.dataset.pos === pos ? '#f59e0b' : 'transparent';
+  });
+  document.querySelectorAll('.fived-btn').forEach(b => b.style.borderColor = 'transparent');
+  if (fivedBetType !== 'POSITION') {
+    fivedBetType = null; fivedBetValue = null;
+    document.getElementById('fived-selected').textContent = 'Position ' + pos + ' selected — now choose digit';
+  }
+}
+
+function selectDigit(d) {
+  if (!selectedPos) { showToast('❌ Choose a position (A–E) first.', 'error'); return; }
+  fivedBetType = 'POSITION';
+  fivedBetValue = selectedPos + ':' + d;
+  document.querySelectorAll('.digit-btn').forEach(b => {
+    b.style.borderColor = b.dataset.d === d ? '#f59e0b' : '';
+    b.style.background   = b.dataset.d === d ? 'rgba(16,185,129,0.3)' : '';
+  });
+  document.getElementById('fived-selected').textContent = 'Position ' + selectedPos + ' = ' + d;
+  updateFiveDPotential();
+}
+
+function selectFiveDType(type, value) {
+  fivedBetType = type; fivedBetValue = value;
+  selectedPos = null;
+  document.querySelectorAll('.pos-btn,.digit-btn').forEach(b => { b.style.borderColor=''; b.style.background=''; });
+  document.querySelectorAll('.fived-btn').forEach(b => {
+    b.style.borderColor = b.dataset.fkey === (type+':'+value) ? '#f59e0b' : 'transparent';
+  });
+  document.getElementById('fived-selected').textContent = type + ': ' + value;
+  updateFiveDPotential();
+}
+
+function setFiveDAmount(v) { document.getElementById('fived-amount').value = v; updateFiveDPotential(); }
+
+function updateFiveDPotential() {
+  const amount = parseFloat(document.getElementById('fived-amount').value) || 0;
+  if (!fivedBetType || !amount) { document.getElementById('fived-potential').textContent = '—'; return; }
+  const odds = { POSITION: 9, TOTAL_SIZE: 2, TOTAL_PARITY: 2, EXACT_TOTAL: 50 };
+  document.getElementById('fived-potential').textContent = '🪙 ' + Math.floor(amount * (odds[fivedBetType] || 0));
+}
+
+async function placeFiveDbet() {
+  if (!fivedBetType || !fivedBetValue) { showToast('❌ Select a bet first.', 'error'); return; }
+  const amount = parseFloat(document.getElementById('fived-amount').value);
+  if (!amount || amount < 10) { showToast('❌ Minimum bet is 10 coins.', 'error'); return; }
+  if (timeLeft <= 5) { showToast('❌ Bet window closed!', 'error'); return; }
+
+  const btn = document.getElementById('fived-place-btn');
+  btn.disabled = true; btn.textContent = 'Placing...';
+
+  try {
+    const r = await fetch('/api/games/5d/bet/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+      credentials: 'same-origin',
+      body: JSON.stringify({ bet_type: fivedBetType, bet_value: fivedBetValue, amount })
+    });
+    const data = await r.json();
+    if (r.ok) {
+      showToast('✅ Bet placed! Potential: 🪙' + Math.floor(data.potential_payout), 'success');
+      setTimeout(() => location.reload(), 1800);
+    } else {
+      showToast('❌ ' + (data.error || 'Error placing bet'), 'error');
+      btn.disabled = false; btn.textContent = 'Place Bet';
+    }
+  } catch(e) {
+    showToast('❌ Network error', 'error');
+    btn.disabled = false; btn.textContent = 'Place Bet';
+  }
+}
+
+// Poll for new round
+setInterval(async () => {
+  try {
+    const r = await fetch('/api/games/5d/current/', { credentials: 'same-origin' });
+    if (r.ok) { const d = await r.json(); if (d.round_number != {{ current_round.round_number }}) location.reload(); }
+  } catch(e) {}
+}, 20000);
+
+function showToast(msg, type) {
+  const colors = { success:'bg-green-800 border-green-500', error:'bg-red-900 border-red-500', warn:'bg-amber-800 border-amber-500', info:'bg-blue-900 border-blue-500' };
+  const div = document.createElement('div');
+  div.className = `fixed top-20 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-xl text-sm font-semibold shadow-2xl border ${colors[type]||colors.info} text-white`;
+  div.textContent = msg; document.body.appendChild(div);
+  setTimeout(() => div.remove(), 3500);
+}
+function getCookie(n) { const v = document.cookie.match('(^|;) ?' + n + '=([^;]*)(;|$)'); return v ? v[2] : ''; }
+</script>
+<style>.card-bg { background: linear-gradient(135deg, #1e0b3e, #2d1060); }</style>
+{% endblock %}

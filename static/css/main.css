@@ -1,0 +1,38 @@
+/* LuckyDraw Gaming Platform - Global Styles */
+/* Tailwind is loaded via CDN in templates */
+
+:root {
+  --primary: #7c3aed;
+  --primary-light: #a855f7;
+  --accent: #f59e0b;
+  --bg-dark: #0f0520;
+  --bg-card: #1e0b3e;
+  --red: #ef4444;
+  --green: #22c55e;
+  --violet: #8b5cf6;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: #1e0b3e; }
+::-webkit-scrollbar-thumb { background: #7c3aed; border-radius: 2px; }
+
+/* Animations */
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+@keyframes slideDown {
+  from { transform: translateX(-50%) translateY(-10px); opacity: 0; }
+  to   { transform: translateX(-50%) translateY(0); opacity: 1; }
+}
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 15px rgba(124, 58, 237, 0.4); }
+  50%       { box-shadow: 0 0 30px rgba(168, 85, 247, 0.7); }
+}
+
+.slide-up { animation: slideUp 0.3s ease-out; }
+.pulse-glow { animation: pulseGlow 2s ease-in-out infinite; }
+
+/* Safe area for iOS/Android */
+.pb-safe { padding-bottom: env(safe-area-inset-bottom, 16px); }

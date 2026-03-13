@@ -1,0 +1,68 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<style>
+.stat-box { background: #1e1e2e; border: 1px solid #333; border-radius: 8px; padding: 16px; margin-bottom: 12px; }
+.stat-box h3 { margin: 0 0 4px; font-size: 12px; color: #888; text-transform: uppercase; }
+.stat-box .val { font-size: 24px; font-weight: 900; color: #a78bfa; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+.section-title { font-size: 14px; font-weight: 700; color: #e2e8f0; margin: 20px 0 10px; border-bottom: 1px solid #333; padding-bottom: 6px; }
+.green { color: #4ade80 !important; }
+.red   { color: #f87171 !important; }
+.amber { color: #fbbf24 !important; }
+body { background: #0f0520 !important; color: #e2e8f0 !important; }
+#header { background: #1e0b3e !important; }
+</style>
+
+<h1 style="color:#a78bfa; margin-bottom: 20px;">📊 Revenue Analytics — Demo Platform</h1>
+<p style="color: #f59e0b; background: #3b2500; padding: 8px 12px; border-radius: 6px; font-size: 12px;">
+  ⚠️ All figures represent DEMO coins only. No real money involved.
+</p>
+
+<div class="section-title">👥 Users</div>
+<div class="grid-4">
+  <div class="stat-box"><h3>Total Users</h3><div class="val">{{ total_users }}</div></div>
+  <div class="stat-box"><h3>New (24h)</h3><div class="val green">{{ new_users_24h }}</div></div>
+  <div class="stat-box"><h3>Active (7d)</h3><div class="val amber">{{ active_7d }}</div></div>
+  <div class="stat-box"><h3>Blocked</h3><div class="val red">{{ blocked_users }}</div></div>
+</div>
+
+<div class="section-title">💰 Wallet Summary</div>
+<div class="grid-3">
+  <div class="stat-box"><h3>Total Demo Coins in Circulation</h3><div class="val amber">🪙 {{ total_balance|floatformat:0 }}</div></div>
+  <div class="stat-box"><h3>Credits Last 24h</h3><div class="val green">+{{ credits_24h|floatformat:0 }}</div></div>
+  <div class="stat-box"><h3>Debits (Bets) Last 24h</h3><div class="val red">-{{ debits_24h|floatformat:0 }}</div></div>
+</div>
+
+<div class="section-title">🎯 Wingo (Last 24h)</div>
+<div class="grid-4">
+  <div class="stat-box"><h3>Rounds Completed Today</h3><div class="val">{{ wingo_rounds_today }}</div></div>
+  <div class="stat-box"><h3>Total Wagered</h3><div class="val">{{ wingo_total_wagered|floatformat:0 }}</div></div>
+  <div class="stat-box"><h3>Total Paid Out</h3><div class="val red">{{ wingo_total_paid|floatformat:0 }}</div></div>
+  <div class="stat-box"><h3>House Edge</h3><div class="val green">{{ wingo_house_edge|floatformat:0 }}</div></div>
+</div>
+
+<div class="section-title">🎲 K3 (Last 24h)</div>
+<div class="grid-3">
+  <div class="stat-box"><h3>Total Wagered</h3><div class="val">{{ k3_total_wagered|floatformat:0 }}</div></div>
+  <div class="stat-box"><h3>Total Paid Out</h3><div class="val red">{{ k3_total_paid|floatformat:0 }}</div></div>
+  <div class="stat-box"><h3>House Edge</h3><div class="val green">{{ k3_house_edge|floatformat:0 }}</div></div>
+</div>
+
+<div class="section-title">🔢 5D (Last 24h)</div>
+<div class="grid-3">
+  <div class="stat-box"><h3>Total Wagered</h3><div class="val">{{ fived_total_wagered|floatformat:0 }}</div></div>
+  <div class="stat-box"><h3>Total Paid Out</h3><div class="val red">{{ fived_total_paid|floatformat:0 }}</div></div>
+  <div class="stat-box"><h3>House Edge</h3><div class="val green">{{ fived_house_edge|floatformat:0 }}</div></div>
+</div>
+
+<div class="section-title">📈 All Games Combined (Last 24h)</div>
+<div class="grid-3">
+  <div class="stat-box"><h3>Total Wagered (All Games)</h3><div class="val amber">🪙 {{ total_wagered|floatformat:0 }}</div></div>
+  <div class="stat-box"><h3>Total House Retention</h3><div class="val green">🪙 {{ total_house_edge|floatformat:0 }}</div></div>
+</div>
+
+<p style="margin-top: 20px; color: #555; font-size: 11px;">
+  All metrics are computed from demo coin transactions. Refresh this page to update. Data shown is for the last 24 hours unless noted.
+</p>
+{% endblock %}

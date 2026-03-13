@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8"/>
+    <!-- user-scalable=no prevents double-tap zoom on iOS; font-size fix on inputs prevents auto-zoom -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no"/>
+    <meta name="theme-color" content="#1a0533"/>
+    <meta name="apple-mobile-web-app-capable" content="yes"zs/>
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"/>
+    <meta name="apple-mobile-web-app-title" content="LuckyDraw"/>
+    <meta name="mobile-web-app-capable" content="yes"/>
+    <title>{% block title %}Jalwa Club | 🎮 {% endblock %}</title>
+    <link rel="manifest" href="/static/manifest.json"/>
+    <link rel="apple-touch-icon" href="/static/img/icon-193.jpeg"/>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      :root {
+        --primary: #7c3aed;
+        --secondary: #a855f7;
+        --accent: #f59e0b;
+        --bg-dark: #0f0520;
+        --bg-card: #1e0b3e;
+      }
+      * {
+        -webkit-tap-highlight-color: transparent;
+        box-sizing: border-box;
+      }
+      body {
+        background: var(--bg-dark);
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+        /* Prevent text resize on orientation change (iOS) */
+        -webkit-text-size-adjust: 100%;
+        overscroll-behavior: none;
+      }
+      .gradient-bg {
+        background: linear-gradient(
+          135deg,
+          #1a0533 0%,
+          #0f0520 50%,
+          #1a0533 100%
+        );
+      }
+      .card-bg {
+        background: linear-gradient(135deg, #1e0b3e, #2d1060);
+      }
+      /* Safe area for iPhone notch / home indicator */
+      .bottom-safe {
+        padding-bottom: max(env(safe-area-inset-bottom, 0px), 12px);
+      }
+      .pt-safe {
+        padding-top: env(safe-area-inset-top, 0px);
+      }
+      /* Fix iOS Safari input zoom: font-size must be >= 16px */
+      input,
+      select,
+      textarea {
+        font-size: 16px !important;
+      }
+      /* Minimum touch target: 44x44px per Apple HIG */
+      button,
+      a,
+      [role="button"] {
+        min-height: 44px;
+      }
+      .slide-up {
+        animation: slideUp 0.3s ease-out;
+      }
+      @keyframes slideUp {
+        from {
+          transform: translateY(20px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+      .glow-purple {
+        box-shadow: 0 0 20px rgba(124, 58, 237, 0.4);
+      }
+      /* Prevent content from hiding under fixed bottom nav */
+      main {
+        padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+      }
+      /* Slim scrollbar */
+      ::-webkit-scrollbar {
+        width: 3px;
+        height: 3px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #7c3aed;
+        border-radius: 2px;
+      }
+      /* Active state for touch devices */
+      .touch-active:active {
+        transform: scale(0.96);
+        opacity: 0.85;
+      }
+    </style>
+    {% block extra_head %}{% endblock %}
+
+  </head>
+  <body class="gradient-bg min-h-screen text-white">
+    
+    <!-- Banner -->
+    <div class="bg-purple-800 text-green text-center py-2">
+      Welcome to LuckyDraw Platform
+    </div>
+
+    <!-- Top Bar -->
+    {% if user.is_authenticated %}
+    <header
+      class="sticky top-0 z-40 card-bg border-b border-purple-800/50 px-4 py-3">
+      <div class="flex items-center justify-between max-w-lg mx-auto">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">🎮</span>
+          <span class="font-bold text-purple-300 text-sm">Jalwa Club</span>
+          <span class="text-xs text-amber-400 font-semibold">Games</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <a
+            href="/wallet/"
+            class="flex items-center gap-1 bg-purple-900/60 rounded-full px-3 py-2 border border-purple-600/40 min-h-0">
+            <span class="text-yellow-400 text-sm">🪙</span>
+            <span class="text-sm font-bold text-white" id="wallet-balance">
+              {% if user.wallet %}{{ user.wallet.balance|floatformat:0 }}{% else%}0{% endif %}
+            </span>
+          </a>
+          <a
+            href="/auth/profile/"
+            class="w-9 h-9 rounded-full bg-purple-700 flex items-center justify-center text-sm font-bold min-h-0">
+            {{ user.username|first|upper }}
+          </a>
+        </div>
+      </div>
+    </header>
+    {% endif %}
+
+    <!-- Flash Messages -->
+    {% if messages %}
+    <div class="px-4 pt-3 max-w-lg mx-auto">
+      {% for msg in messages %}
+      <div
+        class="mb-2 px-4 py-3 rounded-xl text-sm font-medium slide-up {% if msg.tags == 'error' %}bg-red-900/70 border border-red-500/50 text-red-200 {% elif msg.tags == 'success' %}bg-green-900/70 border border-green-500/50 text-green-200 {% else %}bg-blue-900/70 border border-blue-500/50 text-blue-200{% endif %}"
+      >
+        {{ msg }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main class="max-w-lg mx-auto min-h-screen">
+      {% block content %}{% endblock %}
+    </main>
+
+    <!-- Bottom Nav (Mobile Tab Bar) -->
+    {% if user.is_authenticated %}
+    <nav
+      class="fixed bottom-0 left-0 right-0 z-50 card-bg border-t border-purple-800/40 bottom-safe">
+      <div
+        class="max-w-lg mx-auto flex items-center justify-around px-1 pt-2 pb-1">
+        <a
+          href="/"
+          class="flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl min-h-0 {% if request.path == '/' %}text-purple-300 bg-purple-900/50{% else %}text-gray-400{% endif %}">
+          <span class="text-2xl leading-none">🏠</span>
+          <span class="text-xs">Home</span>
+        </a>
+        <a
+          href="/games/wingo/"
+          class="flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl min-h-0 {% if 'wingo' in request.path %}text-purple-300 bg-purple-900/50{% else %}text-gray-400{% endif %}">
+          <span class="text-2xl leading-none">🎯</span>
+          <span class="text-xs">Wingo</span>
+        </a>
+        <a
+          href="/games/k3/"
+          class="flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl min-h-0 {% if 'k3' in request.path %}text-purple-300 bg-purple-900/50{% else %}text-gray-400{% endif %}">
+          <span class="text-2xl leading-none">🎲</span>
+          <span class="text-xs">K3</span>
+        </a>
+        <a
+          href="/games/5d/"
+          class="flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl min-h-0 {% if '5d' in request.path %}text-purple-300 bg-purple-900/50{% else %}text-gray-400{% endif %}">
+          <span class="text-2xl leading-none">🔢</span>
+          <span class="text-xs">5D</span>
+        </a>
+        <a
+          href="/wallet/"
+          class="flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl min-h-0 {% if 'wallet' in request.path %}text-purple-300 bg-purple-900/50{% else %}text-gray-400{% endif %}">
+          <span class="text-2xl leading-none">💰</span>
+          <span class="text-xs">Wallet</span>
+        </a>
+      </div>
+    </nav>
+    {% endif %}
+
+    <script>
+      // Register PWA Service Worker
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker
+            .register("/static/js/sw.js")
+            .catch((err) => console.log("SW registration failed:", err));
+        });
+      }
+
+      // Wallet balance auto-refresh using session cookie (no localStorage needed)
+      async function refreshBalance() {
+        try {
+          const r = await fetch("/api/wallet/balance/", {
+            credentials: "same-origin",
+          });
+          if (r.ok) {
+            const d = await r.json();
+            const el = document.getElementById("wallet-balance");
+            if (el) el.textContent = Math.floor(d.balance);
+          }
+        } catch (e) {}
+      }
+      setInterval(refreshBalance, 15000);
+
+      // Prevent double-tap zoom on iOS buttons
+      document.addEventListener(
+        "touchend",
+        function (e) {
+          const t = e.target.closest("button, a");
+          if (t) e.preventDefault();
+        },
+        { passive: false },
+      );
+    </script>
+    {% block extra_js %}{% endblock %}
+  </body>
+</html>

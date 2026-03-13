@@ -1,0 +1,301 @@
+{% extends 'base.html' %}
+{% block title %}K3 - 3 Dice{% endblock %}
+
+{% block content %}
+<div class="px-4 pt-4">
+
+  <!-- Round Header -->
+  <div class="card-bg rounded-2xl p-4 mb-4 border border-blue-700/30">
+    <div class="flex items-center justify-between">
+      <div>
+        <p class="text-xs text-gray-400">K3 Round</p>
+        <p class="font-bold text-blue-300">#{{ current_round.round_number }}</p>
+      </div>
+      <div class="text-center">
+        <p class="text-xs text-gray-400 mb-1">Time Left</p>
+        <div id="countdown" class="text-4xl font-mono font-black text-white">{{ current_round.seconds_remaining }}</div>
+        <div class="w-40 bg-blue-900/50 rounded-full h-2 mt-2">
+          <div id="progress-bar" class="bg-blue-500 h-2 rounded-full transition-all duration-1000" style="width:100%"></div>
+        </div>
+      </div>
+      <div class="text-right">
+        <p class="text-xs text-gray-400">3-Min Game</p>
+        <span class="text-xs font-bold {% if current_round.status == 'OPEN' %}text-green-400{% else %}text-red-400{% endif %}">
+          {{ current_round.status }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Last Result -->
+  {% if history %}
+  {% with last=history.0 %}
+  <div class="card-bg rounded-xl p-4 mb-4 border border-blue-700/20">
+    <p class="text-xs text-gray-400 mb-2">Last Draw — Round #{{ last.round_number }}</p>
+    <div class="flex items-center gap-4">
+      <div class="flex gap-2">
+        <div class="w-12 h-12 bg-blue-800 rounded-xl flex items-center justify-center font-black text-2xl border-2 border-blue-500">{{ last.dice1 }}</div>
+        <div class="w-12 h-12 bg-blue-800 rounded-xl flex items-center justify-center font-black text-2xl border-2 border-blue-500">{{ last.dice2 }}</div>
+        <div class="w-12 h-12 bg-blue-800 rounded-xl flex items-center justify-center font-black text-2xl border-2 border-blue-500">{{ last.dice3 }}</div>
+      </div>
+      <div>
+        <p class="text-sm font-bold text-white">Total: <span class="text-blue-300 text-lg">{{ last.total }}</span></p>
+        <div class="flex gap-1 flex-wrap mt-1">
+          {% for tag in last.result_tags %}
+          <span class="text-xs px-1.5 py-0.5 rounded-full bg-blue-900/60 border border-blue-600/30 text-blue-300">{{ tag }}</span>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endwith %}
+  {% endif %}
+
+  <!-- Bet Panel -->
+  <div class="card-bg rounded-2xl p-4 mb-4 border border-blue-700/30">
+    <h3 class="font-semibold text-sm mb-3 text-blue-300">Place Bet</h3>
+
+    <!-- Big / Small / Odd / Even -->
+    <div class="grid grid-cols-2 gap-2 mb-3">
+      <button onclick="selectK3Bet('SIZE','BIG')" data-key="SIZE:BIG"
+        class="k3-btn py-3 rounded-xl font-bold text-sm border-2 border-transparent transition-all bg-blue-700 flex flex-col items-center">
+        <span>📈 Big (11–17)</span><span class="text-xs opacity-70 mt-0.5">2x payout</span>
+      </button>
+      <button onclick="selectK3Bet('SIZE','SMALL')" data-key="SIZE:SMALL"
+        class="k3-btn py-3 rounded-xl font-bold text-sm border-2 border-transparent transition-all bg-emerald-700 flex flex-col items-center">
+        <span>📉 Small (4–10)</span><span class="text-xs opacity-70 mt-0.5">2x payout</span>
+      </button>
+      <button onclick="selectK3Bet('PARITY','ODD')" data-key="PARITY:ODD"
+        class="k3-btn py-3 rounded-xl font-bold text-sm border-2 border-transparent transition-all bg-orange-700 flex flex-col items-center">
+        <span>🔴 Odd Sum</span><span class="text-xs opacity-70 mt-0.5">2x payout</span>
+      </button>
+      <button onclick="selectK3Bet('PARITY','EVEN')" data-key="PARITY:EVEN"
+        class="k3-btn py-3 rounded-xl font-bold text-sm border-2 border-transparent transition-all bg-indigo-700 flex flex-col items-center">
+        <span>🔵 Even Sum</span><span class="text-xs opacity-70 mt-0.5">2x payout</span>
+      </button>
+    </div>
+
+    <!-- Any Triple -->
+    <button onclick="selectK3Bet('ANY_TRIPLE','ANY')" data-key="ANY_TRIPLE:ANY"
+      class="k3-btn w-full py-3 rounded-xl font-bold text-sm border-2 border-transparent transition-all bg-violet-700 flex items-center justify-center gap-2 mb-3">
+      <span>🎯 Any Triple (1-1-1 or 2-2-2 etc.)</span><span class="text-xs opacity-70">34.56x</span>
+    </button>
+
+    <!-- Specific Triples -->
+    <div class="mb-3">
+      <p class="text-xs text-gray-400 mb-2">Specific Triple → 207x</p>
+      <div class="grid grid-cols-6 gap-1.5">
+        <button onclick="selectK3Bet('SPECIFIC_TRIPLE','1')" data-key="SPECIFIC_TRIPLE:1"
+          class="k3-btn py-2 rounded-lg text-xs font-bold border border-purple-700/40 bg-purple-900/40 transition-all">1-1-1</button>
+        <button onclick="selectK3Bet('SPECIFIC_TRIPLE','2')" data-key="SPECIFIC_TRIPLE:2"
+          class="k3-btn py-2 rounded-lg text-xs font-bold border border-purple-700/40 bg-purple-900/40 transition-all">2-2-2</button>
+        <button onclick="selectK3Bet('SPECIFIC_TRIPLE','3')" data-key="SPECIFIC_TRIPLE:3"
+          class="k3-btn py-2 rounded-lg text-xs font-bold border border-purple-700/40 bg-purple-900/40 transition-all">3-3-3</button>
+        <button onclick="selectK3Bet('SPECIFIC_TRIPLE','4')" data-key="SPECIFIC_TRIPLE:4"
+          class="k3-btn py-2 rounded-lg text-xs font-bold border border-purple-700/40 bg-purple-900/40 transition-all">4-4-4</button>
+        <button onclick="selectK3Bet('SPECIFIC_TRIPLE','5')" data-key="SPECIFIC_TRIPLE:5"
+          class="k3-btn py-2 rounded-lg text-xs font-bold border border-purple-700/40 bg-purple-900/40 transition-all">5-5-5</button>
+        <button onclick="selectK3Bet('SPECIFIC_TRIPLE','6')" data-key="SPECIFIC_TRIPLE:6"
+          class="k3-btn py-2 rounded-lg text-xs font-bold border border-purple-700/40 bg-purple-900/40 transition-all">6-6-6</button>
+      </div>
+    </div>
+
+    <!-- Total Sum -->
+    <div class="mb-4">
+      <p class="text-xs text-gray-400 mb-2">Exact Total Sum (3–18) — varying odds</p>
+      <div class="grid grid-cols-8 gap-1">
+        <button onclick="selectK3Bet('TOTAL','3')"  data-key="TOTAL:3"  class="k3-btn py-1.5 rounded-lg text-xs font-bold border border-blue-700/40 bg-blue-900/30 transition-all">3</button>
+        <button onclick="selectK3Bet('TOTAL','4')"  data-key="TOTAL:4"  class="k3-btn py-1.5 rounded-lg text-xs font-bold border border-blue-700/40 bg-blue-900/30 transition-all">4</button>
+        <button onclick="selectK3Bet('TOTAL','5')"  data-key="TOTAL:5"  class="k3-btn py-1.5 rounded-lg text-xs font-bold border border-blue-700/40 bg-blue-900/30 transition-all">5</button>
+        <button onclick="selectK3Bet('TOTAL','6')"  data-key="TOTAL:6"  class="k3-btn py-1.5 rounded-lg text-xs font-bold border border-blue-700/40 bg-blue-900/30 transition-all">6</button>
+        <button onclick="selectK3Bet('TOTAL','7')"  data-key="TOTAL:7"  class="k3-btn py-1.5 rounded-lg text-xs font-bold border border-blue-700/40 bg-blue-900/30 transition-all">7</button>
+        <button onclick="selectK3Bet('TOTAL','8')"  data-key="TOTAL:8"  class="k3-btn py-1.5 rounded-lg text-xs font-bold border border-blue-700/40 bg-blue-900/30 transition-all">8</button>
+        <button onclick="selectK3Bet('TOTAL','9')"  data-key="TOTAL:9"  class="k3-btn py-1.5 rounded-lg text-xs font-bold border border-blue-700/40 bg-blue-900/30 transition-all">9</button>
+        <button onclick="selectK3Bet('TOTAL','10')" data-key="TOTAL:10" class="k3-btn py-1.5 rounded-lg text-xs font-bold border border-blue-700/40 bg-blue-900/30 transition-all">10</button>
+        <button onclick="selectK3Bet('TOTAL','11')" data-key="TOTAL:11" class="k3-btn py-1.5 rounded-lg text-xs font-bold border border-blue-700/40 bg-blue-900/30 transition-all">11</button>
+        <button onclick="selectK3Bet('TOTAL','12')" data-key="TOTAL:12" class="k3-btn py-1.5 rounded-lg text-xs font-bold border border-blue-700/40 bg-blue-900/30 transition-all">12</button>
+        <button onclick="selectK3Bet('TOTAL','13')" data-key="TOTAL:13" class="k3-btn py-1.5 rounded-lg text-xs font-bold border border-blue-700/40 bg-blue-900/30 transition-all">13</button>
+        <button onclick="selectK3Bet('TOTAL','14')" data-key="TOTAL:14" class="k3-btn py-1.5 rounded-lg text-xs font-bold border border-blue-700/40 bg-blue-900/30 transition-all">14</button>
+        <button onclick="selectK3Bet('TOTAL','15')" data-key="TOTAL:15" class="k3-btn py-1.5 rounded-lg text-xs font-bold border border-blue-700/40 bg-blue-900/30 transition-all">15</button>
+        <button onclick="selectK3Bet('TOTAL','16')" data-key="TOTAL:16" class="k3-btn py-1.5 rounded-lg text-xs font-bold border border-blue-700/40 bg-blue-900/30 transition-all">16</button>
+        <button onclick="selectK3Bet('TOTAL','17')" data-key="TOTAL:17" class="k3-btn py-1.5 rounded-lg text-xs font-bold border border-blue-700/40 bg-blue-900/30 transition-all">17</button>
+        <button onclick="selectK3Bet('TOTAL','18')" data-key="TOTAL:18" class="k3-btn py-1.5 rounded-lg text-xs font-bold border border-blue-700/40 bg-blue-900/30 transition-all">18</button>
+      </div>
+    </div>
+
+    <!-- Amount Row -->
+    <div class="pt-3 border-t border-blue-800/40">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-xs text-gray-400">Selected: <span id="k3-selected" class="text-blue-300 font-semibold">None</span></span>
+        <span class="text-xs text-amber-400 font-bold" id="k3-potential">—</span>
+      </div>
+      <div class="grid grid-cols-4 gap-1.5 mb-2">
+        <button onclick="setK3Amount(10)"  class="bg-blue-900/50 border border-blue-700/40 rounded-lg py-2 text-xs font-semibold">10</button>
+        <button onclick="setK3Amount(50)"  class="bg-blue-900/50 border border-blue-700/40 rounded-lg py-2 text-xs font-semibold">50</button>
+        <button onclick="setK3Amount(100)" class="bg-blue-900/50 border border-blue-700/40 rounded-lg py-2 text-xs font-semibold">100</button>
+        <button onclick="setK3Amount(500)" class="bg-blue-900/50 border border-blue-700/40 rounded-lg py-2 text-xs font-semibold">500</button>
+      </div>
+      <div class="flex gap-3">
+        <div class="flex-1 bg-blue-900/30 border border-blue-700/40 rounded-xl px-3 py-2.5 flex items-center gap-2">
+          <span class="text-yellow-400">🪙</span>
+          <input type="number" id="k3-amount" min="10" max="10000" value="10"
+            class="bg-transparent flex-1 text-white text-sm font-bold outline-none" oninput="updateK3Potential()">
+        </div>
+        <button id="k3-place-btn" onclick="placeK3Bet()"
+          class="px-6 py-2.5 rounded-xl font-bold text-sm text-white bg-blue-700 hover:bg-blue-600 active:scale-95 transition-all">
+          Place Bet
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- My Bets -->
+  {% if my_bets %}
+  <div class="card-bg rounded-xl p-4 mb-4 border border-blue-700/20">
+    <h4 class="text-sm font-semibold text-blue-300 mb-2">My Bets This Round</h4>
+    {% for bet in my_bets %}
+    <div class="flex items-center justify-between py-2 border-b border-blue-800/30 last:border-0">
+      <span class="text-xs text-gray-400">{{ bet.get_bet_type_display }}</span>
+      <span class="text-sm font-bold text-white ml-2">{{ bet.bet_value }}</span>
+      <div class="ml-auto text-right">
+        <span class="text-xs text-yellow-400">🪙 {{ bet.amount|floatformat:0 }}</span>
+        <span class="text-xs text-gray-400 ml-1">→ {{ bet.potential_payout|floatformat:0 }}</span>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- History -->
+  <div class="card-bg rounded-2xl p-4 border border-blue-700/20 mb-6">
+    <h4 class="text-sm font-semibold text-blue-300 mb-3">Round History</h4>
+    {% if history %}
+    <div class="overflow-x-auto -mx-4 px-4">
+    <table class="w-full text-xs">
+      <thead>
+        <tr class="text-gray-500 border-b border-blue-800/30">
+          <th class="pb-2 text-left">Round</th>
+          <th class="pb-2 text-center">Dice</th>
+          <th class="pb-2 text-center">Total</th>
+          <th class="pb-2 text-right">Tags</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in history %}
+        <tr class="border-b border-blue-800/20">
+          <td class="py-2 text-gray-400">#{{ r.round_number }}</td>
+          <td class="py-2 text-center font-bold">{{ r.dice1 }}·{{ r.dice2 }}·{{ r.dice3 }}</td>
+          <td class="py-2 text-center font-bold text-blue-300">{{ r.total }}</td>
+          <td class="py-2 text-right">
+            {% for tag in r.result_tags %}
+            <span class="text-blue-400 mr-1">{{ tag }}</span>
+            {% endfor %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    </div>
+    {% else %}
+    <p class="text-center text-gray-500 py-4">No completed rounds yet.</p>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const TOTAL_SECONDS = 180;
+let timeLeft = {{ current_round.seconds_remaining }};
+let k3BetType = null, k3BetValue = null;
+
+const TOTAL_ODDS = {3:207.36,4:69.12,5:34.56,6:20.74,7:13.82,8:9.88,9:8.64,10:8.64,11:8.64,12:8.64,13:9.88,14:13.82,15:20.74,16:34.56,17:69.12,18:207.36};
+const SIMPLE_ODDS = {SIZE:2, PARITY:2, ANY_TRIPLE:34.56, SPECIFIC_TRIPLE:207.36};
+
+const countdownEl = document.getElementById('countdown');
+const progressEl  = document.getElementById('progress-bar');
+
+function tick() {
+  if (timeLeft <= 0) {
+    countdownEl.textContent = '00';
+    progressEl.style.width = '0%';
+    showToast('⏰ Round ended! Loading next round...', 'info');
+    setTimeout(() => location.reload(), 2500);
+    return;
+  }
+  timeLeft--;
+  countdownEl.textContent = String(timeLeft).padStart(2, '0');
+  countdownEl.style.color = timeLeft <= 15 ? '#ef4444' : '#ffffff';
+  progressEl.style.width = ((timeLeft / TOTAL_SECONDS) * 100) + '%';
+  if (timeLeft === 5) showToast('⚠️ 5 seconds left!', 'warn');
+}
+setInterval(tick, 1000);
+
+function selectK3Bet(type, value) {
+  k3BetType = type; k3BetValue = value;
+  document.getElementById('k3-selected').textContent = type + ': ' + value;
+  document.querySelectorAll('.k3-btn').forEach(b => {
+    b.style.borderColor = b.dataset.key === (type + ':' + value) ? '#f59e0b' : 'transparent';
+  });
+  updateK3Potential();
+}
+
+function setK3Amount(v) { document.getElementById('k3-amount').value = v; updateK3Potential(); }
+
+function updateK3Potential() {
+  const amount = parseFloat(document.getElementById('k3-amount').value) || 0;
+  if (!k3BetType || !amount) { document.getElementById('k3-potential').textContent = '—'; return; }
+  let odds = SIMPLE_ODDS[k3BetType] || (k3BetType === 'TOTAL' ? (TOTAL_ODDS[parseInt(k3BetValue)] || 0) : 0);
+  document.getElementById('k3-potential').textContent = '🪙 ' + Math.floor(amount * odds);
+}
+
+async function placeK3Bet() {
+  if (!k3BetType || !k3BetValue) { showToast('❌ Select a bet first.', 'error'); return; }
+  const amount = parseFloat(document.getElementById('k3-amount').value);
+  if (!amount || amount < 10) { showToast('❌ Minimum bet is 10 coins.', 'error'); return; }
+  if (timeLeft <= 5) { showToast('❌ Bet window closed!', 'error'); return; }
+
+  const btn = document.getElementById('k3-place-btn');
+  btn.disabled = true; btn.textContent = 'Placing...';
+
+  try {
+    const r = await fetch('/api/games/k3/bet/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+      credentials: 'same-origin',
+      body: JSON.stringify({ bet_type: k3BetType, bet_value: k3BetValue, amount })
+    });
+    const data = await r.json();
+    if (r.ok) {
+      showToast('✅ Bet placed! Potential: 🪙' + Math.floor(data.potential_payout), 'success');
+      setTimeout(() => location.reload(), 1800);
+    } else {
+      showToast('❌ ' + (data.error || 'Error placing bet'), 'error');
+      btn.disabled = false; btn.textContent = 'Place Bet';
+    }
+  } catch(e) {
+    showToast('❌ Network error', 'error');
+    btn.disabled = false; btn.textContent = 'Place Bet';
+  }
+}
+
+// Poll for new round
+setInterval(async () => {
+  try {
+    const r = await fetch('/api/games/k3/current/', { credentials: 'same-origin' });
+    if (r.ok) { const d = await r.json(); if (d.round_number != {{ current_round.round_number }}) location.reload(); }
+  } catch(e) {}
+}, 15000);
+
+function showToast(msg, type) {
+  const colors = { success:'bg-green-800 border-green-500', error:'bg-red-900 border-red-500', warn:'bg-amber-800 border-amber-500', info:'bg-blue-900 border-blue-500' };
+  const div = document.createElement('div');
+  div.className = `fixed top-20 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-xl text-sm font-semibold shadow-2xl border ${colors[type]||colors.info} text-white`;
+  div.textContent = msg; document.body.appendChild(div);
+  setTimeout(() => div.remove(), 3500);
+}
+function getCookie(n) { const v = document.cookie.match('(^|;) ?' + n + '=([^;]*)(;|$)'); return v ? v[2] : ''; }
+</script>
+<style>.card-bg { background: linear-gradient(135deg, #1e0b3e, #2d1060); }</style>
+{% endblock %}

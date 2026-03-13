@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#1a0533">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="LuckyDraw">
+  <title>Register | LuckyDraw Demo</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+    body {
+      background: linear-gradient(135deg, #1a0533, #0f0520);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      -webkit-text-size-adjust: 100%;
+    }
+    .card { background: linear-gradient(135deg, #1e0b3e, #2d1060); }
+    /* iOS zoom fix */
+    input, select {
+      font-size: 16px !important;
+      -webkit-appearance: none;
+    }
+    .input-field {
+      background: rgba(124,58,237,0.12);
+      border: 1.5px solid rgba(124,58,237,0.35);
+      color: white;
+      width: 100%;
+      padding: 13px 14px;
+      border-radius: 12px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .input-field:focus { border-color: #a855f7; box-shadow: 0 0 0 3px rgba(168,85,247,0.15); }
+    .input-field::placeholder { color: rgba(255,255,255,0.35); }
+    .btn-submit {
+      background: linear-gradient(135deg, #7c3aed, #a855f7);
+      color: white;
+      width: 100%;
+      padding: 16px;
+      border-radius: 14px;
+      font-weight: 700;
+      font-size: 16px;
+      border: none;
+      cursor: pointer;
+      min-height: 54px;
+      transition: transform 0.15s, opacity 0.15s;
+    }
+    .btn-submit:active { transform: scale(0.97); opacity: 0.9; }
+    label { display: block; font-size: 13px; font-weight: 600; color: #c4b5fd; margin-bottom: 6px; }
+  </style>
+</head>
+<body class="min-h-screen text-white p-5">
+  <div class="w-full max-w-sm mx-auto py-6">
+
+    <div class="text-center mb-6">
+      <div class="text-5xl mb-2">🎮</div>
+      <h1 class="text-xl font-black text-purple-300">Create Your Account</h1>
+      <p class="text-xs text-amber-400 mt-1 bg-amber-900/30 rounded-full px-3 py-1 inline-block">
+        🪙Get 100 Coins Welcome Bonus!
+      </p>
+    </div>
+
+    <div class="card rounded-2xl p-5 border border-purple-700/30">
+
+      {% if messages %}
+      {% for msg in messages %}
+      <div class="mb-3 p-3 rounded-xl text-sm bg-red-900/60 border border-red-500/40 text-red-200">
+        {{ msg }}
+      </div>
+      {% endfor %}
+      {% endif %}
+
+      <form method="post" class="space-y-3">
+        {% csrf_token %}
+
+        <div>
+          <label>Username *</label>
+          <input type="text" name="username" required autocomplete="username"
+            class="input-field" placeholder="At least 3 characters"
+            autocorrect="off" autocapitalize="none" spellcheck="false">
+        </div>
+
+        <div>
+          <label>Email *</label>
+          <input type="email" name="email" required autocomplete="email"
+            class="input-field" placeholder="your@email.com"
+            autocorrect="off" autocapitalize="none">
+        </div>
+
+        <div>
+          <label>Phone <span class="text-gray-500 font-normal">(optional)</span></label>
+          <input type="tel" name="phone" autocomplete="tel"
+            class="input-field" placeholder="+1 555 000 0000">
+        </div>
+
+        <div>
+          <label>Password *</label>
+          <input type="password" name="password" required minlength="8"
+            autocomplete="new-password" class="input-field" placeholder="Min 8 characters">
+        </div>
+
+        <div>
+          <label>Confirm Password *</label>
+          <input type="password" name="password2" required autocomplete="new-password"
+            class="input-field" placeholder="Repeat password">
+        </div>
+
+        <div>
+          <label>Referral Code <span class="text-gray-500 font-normal">(optional)</span></label>
+          <input type="text" name="referral_code" value="{{ referral_code }}"
+            class="input-field" placeholder="Friend's code"
+            autocorrect="off" autocapitalize="characters" spellcheck="false">
+        </div>
+
+        <!-- Agreement checkbox -->
+        <div class="flex items-start gap-3 pt-1">
+          <div class="relative mt-0.5">
+            <input type="checkbox" id="agree" required
+              class="w-5 h-5 accent-purple-500 cursor-pointer">
+          </div>
+          <label for="agree" class="text-xs text-gray-400 font-normal leading-relaxed cursor-pointer">
+            I understand that <strong class="text-amber-400">participation</strong> may involve real money and I agree to play responsibly.
+          </label>
+        </div>
+
+        <div class="pt-1">
+          <button type="submit" class="btn-submit">
+            Create Account & Claim 1,000 Coins 🪙
+          </button>
+        </div>
+      </form>
+
+      <p class="text-center text-sm text-gray-400 mt-4">
+        Have an account?
+        <a href="/auth/login/" class="text-purple-400 font-bold">Sign in</a>
+      </p>
+    </div>
+  </div>
+</body>
+</html>

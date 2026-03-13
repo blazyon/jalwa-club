@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% block title %}Profile{% endblock %}
+
+{% block extra_head %}
+<style>.card-bg { background: linear-gradient(135deg, #1e0b3e, #2d1060); }</style>
+{% endblock %}
+
+{% block content %}
+<div class="px-4 pt-5">
+
+  <!-- Avatar + Name -->
+  <div class="card-bg rounded-2xl p-5 mb-4 border border-purple-700/30">
+    <div class="flex items-center gap-4">
+      <div class="w-16 h-16 rounded-full bg-purple-700 flex items-center justify-center text-3xl font-black">
+        {{ user.username|first|upper }}
+      </div>
+      <div>
+        <h2 class="text-xl font-bold">{{ user.username }}</h2>
+        <p class="text-sm text-gray-400">{{ user.email }}</p>
+        {% if user.phone %}<p class="text-xs text-gray-500">{{ user.phone }}</p>{% endif %}
+        <p class="text-xs text-green-400 mt-1">Your Account</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Account Info -->
+  <div class="card-bg rounded-2xl p-4 mb-4 border border-purple-700/30">
+    <h3 class="font-semibold text-sm mb-3 text-purple-300">Account Info</h3>
+    <div class="space-y-3 text-sm">
+      <div class="flex justify-between">
+        <span class="text-gray-400">Username</span>
+        <span class="font-semibold">{{ user.username }}</span>
+      </div>
+      <div class="flex justify-between">
+        <span class="text-gray-400">Email</span>
+        <span>{{ user.email }}</span>
+      </div>
+      <div class="flex justify-between">
+        <span class="text-gray-400">Member Since</span>
+        <span>{{ user.date_joined|date:"M d, Y" }}</span>
+      </div>
+      <div class="flex justify-between items-center">
+        <span class="text-gray-400">Referral Code</span>
+        <div class="flex items-center gap-2">
+          <span class="font-mono text-purple-300 font-bold">{{ user.referral_code }}</span>
+          <button onclick="navigator.clipboard.writeText('{{ user.referral_code }}')"
+            class="text-xs text-purple-400 border border-purple-600/50 rounded px-2 py-0.5">
+            Copy
+          </button>
+        </div>
+      </div>
+      <div class="flex justify-between">
+        <span class="text-gray-400">Friends Invited</span>
+        <span class="text-green-400 font-bold">{{ referrals.count }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Wallet Summary -->
+  {% if user.wallet %}
+  <div class="card-bg rounded-2xl p-4 mb-4 border border-purple-700/30">
+    <h3 class="font-semibold text-sm mb-3 text-purple-300">Wallet</h3>
+    <div class="flex items-center justify-between">
+      <span class="text-gray-400 text-sm">Balance</span>
+      <span class="text-2xl font-black text-yellow-400">🪙 {{ user.wallet.balance|floatformat:0 }}</span>
+    </div>
+    <a href="/wallet/" class="block mt-3 text-center text-xs text-purple-400 border border-purple-600/30 rounded-xl py-2">
+      View Transaction History →
+    </a>
+  </div>
+  {% endif %}
+
+  <!-- Sign Out -->
+  <a href="/auth/logout/"
+    class="block w-full text-center py-3 rounded-xl font-semibold text-red-400 border border-red-700/40 bg-red-900/20 active:scale-95 transition-transform">
+    Sign Out
+  </a>
+
+  <p class="text-center text-xs text-gray-600 mt-4">
+    ⚠️ Participate responsibly.
+  </p>
+</div>
+{% endblock %}
